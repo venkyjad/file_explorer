@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <title>Manager</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width">
+
+
+        <!-- Latest compiled and minified CSS -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+        <style>
+        html,body{
+          background-color: #eee;
+        }
+        h4{
+          color:#fff!important;
+        }
+        ul {
+          list-style-type: none;
+        }
+        [ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak {
+          display: none !important;
+        }
+        </style>
+    </head>
+    <body>
+      <!-- The Top Navbar -->
+      <div class="navbar navbar-inverse navbar-fixed-top">
+            <div class="navbar-inner">
+                <div class="container">
+                    <center><h4>Simple File Manager</h4></center>
+                </div>
+            </div>
+      </div>
+      <!--Navbar Ends Here -->
+
+      <div class="container bootstrap snippet" ng-app='RecApp' ng-controller='AppController'>
+      <br/><br/><br/><br/>
+        <!-- The first column contains Files, ng-cloak is used to hide the andular elements before rendering -->
+        <div class="row" ng-cloak>
+          <div class="col-md-3">
+            <center><span class="label label-primary">Files</span></center><br/>
+                <div id="treeBasic" >
+                  <ul >
+                      <li ng-cloak
+                          ng-repeat="f in filename"
+                          ng-if="f.foldname !=none" >
+                          <a  ng-click="subfiles(f.foldpath,f.foldname)">
+                            <img src="/static/img/folder.png" width=20>&nbsp;{a f.foldname a}
+                          </a>
+                      </li>
+                      <li  ng-animate="'animate'"
+                           ng-repeat="f in filename"
+                           ng-if="f.filen !=none">
+                          <a id="{a f.filen a}"
+                             ng-click="frame(f.filepath)">
+                             <img src="/static/img/file.png" width=20>&nbsp; {a f.filen a}
+                           </a>
+                      </li>
+                  </ul>
+                </div>
+          </div>
+          <!-- First column with Files Ends Here -->
+
+          <!-- Second column with SubFiles  -->
+          <div class="col-md-3">
+            <center><span class="label label-primary">Sub Files</span>
+            </center><br/>
+
+              <div id="treeDragDrop" >
+                <ul>
+                    <li ng-cloak
+                        ng-repeat="s in sub"
+                        ng-if="s.foldname !=none" >
+                        <a  ng-click="subfiles(s.foldpath,s.foldname)">
+                          <img src="/static/img/folder.png" width=20>&nbsp;{a s.foldname a}
+                        </a>
+                    </li>
+                    <li  ng-cloak
+                         ng-repeat="s in sub"
+                         ng-if="s.filen !=none">
+                        <a id="{a s.filen a}"
+                           ng-click="frame(s.filepath,s.filen)">
+                           <img src="/static/img/file.png" width=20>&nbsp; {a s.filen a}
+                        </a>
+                    </li>
+                </ul>
+             </div>
+          </div>
+          <!-- Second column with SubFiles Ends Here -->
+
+          <!-- Third Column with iframe which shows the content of the file -->
+          <div class="col-md-5">
+              <center><span class="label label-primary">Content</span></center><br/>
+                <iframe  id="fview" src="/file_view.html"  style="padding:1px;" name="i_frame" width="500" height="450" frameborder='0' hidden> </iframe>
+          </div>
+          <!-- iFrame Ends here-->
+
+        </div>
+
+        <script   src="https://code.jquery.com/jquery-3.1.1.min.js"   integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="   crossorigin="anonymous"></script>
+
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.2.1/angular.min.js"></script>
+        <script>
+        var RecApp = angular.module('RecApp', [ ]);
+        RecApp.config(['$interpolateProvider', function($interpolateProvider) {
+              /* Since AngularJS and Flask both uses flower braces,
+               angularjs has been changes with letter 'a' for ease */
+
+              $interpolateProvider.startSymbol('{a');
+              $interpolateProvider.endSymbol('a}');
+            }]);
+        angular.module('RecApp').controller('AppController', function ($scope,$http,$window,$compile) {
+
+              /*THis function gets all the files*/
+              $scope.getfiles = function (){
+                console.log("welcome")
+                $http.post("/getfilelist",
+                {
+                  path:'' /*You can mention the path which you wanna explore*/
+                })
+                .then(function(response) {
+                  $scope.filename = response.data.files;
+                })
+              }
+
+              /* This function changes the iFrame scr based on the filepath paramenter passed */
+              $scope.frame = function (filepath,filen){
+                console.log(filepath)
+                $("#fview").show();
+                $("#fview").attr("src", "/view_content/"+filepath);
+              }
+
+              /* subfile and folders are retreived with the following function by passing the filepath */
+              $scope.subfiles = function (filepath,foldname){
+
+                $http.post("/get_subfiles",
+                {
+
+                  filepath:filepath
+                })
+                .then(function(response) {
+                  $scope.sub = response.data.subfiles;
+                })
+              }
+              $scope.getfiles();
+              });
+
+            </script>
+
+    </body>
+</html>
